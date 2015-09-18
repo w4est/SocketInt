@@ -1,32 +1,9 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
 
-#include <stdio.h> /* for printf() and fprintf() */
-#include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
-#include <arpa/inet.h> /* for sockaddr.in and inet.addr() */
-#include <stdlib.h> /* for atoi() */
-#include <string.h> /* for memset() */
-#include <unistd.h> /* for close */
-#include <sys/types.h>
 
-#define RCVBUFSIZE 32 /*Size ofreceive buff */
 
-void DieWithError(char* errorMessage);
+void DieWithError(char *errorMessage); /* Error handling function */
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::on_ClientButton_clicked()
-{
+int c(int argc, char *argv[]){
     int sock;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;
@@ -36,8 +13,18 @@ void MainWindow::on_ClientButton_clicked()
     unsigned int echoStringLen;
     int bytesRcvd, totalBytesRcvd;
 
-    servIP = "134.117.249.83";
-    echoString = "Hello";
+    if((argc < 3) || (argc > 4)){
+        fprintf(stderr, "Usage: %s <Server IP> <Echo Word [<Echo Port>]\n",
+                argv[0]);
+        exit(1);
+    }
+    servIP = argv[1];
+    echoString = argv[2];
+
+    if(argc == 4)
+        echoServPort = atoi(argv[3]);
+    else
+        echoServPort = 7;
 
     if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
         DieWithError("socket() failed");
@@ -70,12 +57,3 @@ void MainWindow::on_ClientButton_clicked()
     exit(0);
 }
 
-void MainWindow::on_HostButton_clicked()
-{
-
-}
-
-void MainWindow::on_actionExit_triggered()
-{
-    qApp->quit();
-}
