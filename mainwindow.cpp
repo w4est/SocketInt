@@ -35,47 +35,47 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_ClientButton_clicked()
 {
-    int sock;
-    struct sockaddr_in echoServAddr;
-    unsigned short echoServPort;
-    char *servIP;
-    char *echoString;
-    char echoBuffer[RCVBUFSIZE];
-    unsigned int echoStringLen;
-    int bytesRcvd, totalBytesRcvd;
+//    int sock;
+//    struct sockaddr_in echoServAddr;
+//    unsigned short echoServPort;
+//    char *servIP;
+//    char *echoString;
+//    char echoBuffer[RCVBUFSIZE];
+//    unsigned int echoStringLen;
+//    int bytesRcvd, totalBytesRcvd;
 
-    servIP = "134.117.249.83";
-    echoString = "Hello";
+//    servIP = "134.117.249.83";
+//    echoString = "Hello";
 
-    if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-        DieWithError("socket() failed");
+//    if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+//        DieWithError("socket() failed");
 
-    memset(&echoServAddr, 0, sizeof(echoServAddr));
-    echoServAddr.sin_family = AF_INET;
-    echoServAddr.sin_addr.s_addr = inet_addr(servIP);
-    echoServAddr.sin_port = htons(echoServPort);
+//    memset(&echoServAddr, 0, sizeof(echoServAddr));
+//    echoServAddr.sin_family = AF_INET;
+//    echoServAddr.sin_addr.s_addr = inet_addr(servIP);
+//    echoServAddr.sin_port = htons(echoServPort);
 
-    if(connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
-        DieWithError("connect() failed");
+//    if(connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
+//        DieWithError("connect() failed");
 
-    echoStringLen = strlen(echoString);
+//    echoStringLen = strlen(echoString);
 
-    if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
-        DieWithError("send() sent a different number of bytes than expected");
+//    if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
+//        DieWithError("send() sent a different number of bytes than expected");
 
-    totalBytesRcvd = 0;
-    printf("Recieved: ");
-    while (totalBytesRcvd < echoStringLen){
-        if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
-            DieWithError("recv() failed or connection closed prematurely");
-        totalBytesRcvd += bytesRcvd;
-        echoBuffer[bytesRcvd] = '\0';
-        printf(echoBuffer);
-    }
+//    totalBytesRcvd = 0;
+//    printf("Recieved: ");
+//    while (totalBytesRcvd < echoStringLen){
+//        if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
+//            DieWithError("recv() failed or connection closed prematurely");
+//        totalBytesRcvd += bytesRcvd;
+//        echoBuffer[bytesRcvd] = '\0';
+//        printf(echoBuffer);
+//    }
 
-    printf("\n");
-    close(sock);
-    exit(0);
+//    printf("\n");
+//    close(sock);
+//    exit(0);
 }
 
 void MainWindow::on_HostButton_clicked()
