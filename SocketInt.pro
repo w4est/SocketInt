@@ -13,8 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    sockethost.cpp \
+    socketclient.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    sockethost.h \
+    socketclient.h
 
 FORMS    += mainwindow.ui
