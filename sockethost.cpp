@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <dirent.h>
+
+#include <dirent.h>
 
 using namespace std;
 
@@ -89,4 +92,20 @@ SocketHost::SocketHost(MainWindow* Window)
 
 
 
+}
+
+//create a file dirList.txt for the server to read from and send line by line
+void SocketHost::listDirectories(){ //called when the server receives an ls command
+    const char* path = ".";
+
+    FILE* dirList = fopen("dirList.txt", "w");
+    DIR* d = opendir(path);
+    if (d == NULL) return;
+
+    for(struct dirent *de = NULL; (de = readdir(d)) != NULL; ){
+      fputs(de->d_name, dirList);
+      fputs("\n", dirList);
+    }
+    closedir(d);
+    fclose(dirList);
 }

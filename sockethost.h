@@ -8,6 +8,7 @@ class SocketHost
 {
 public:
     SocketHost(MainWindow*); //constructor, take ui and use
+    void listDirectories();
 };
 
 #endif // SOCKETHOST_H
