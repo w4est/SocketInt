@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include <dirent.h>
 
 using namespace std;
 
@@ -95,10 +94,10 @@ SocketHost::SocketHost(MainWindow* Window)
 }
 
 //create a file dirList.txt for the server to read from and send line by line
-void SocketHost::listDirectories(){ //called when the server receives an ls command
-    const char* path = ".";
+void SocketHost::listDirectories(const char* currDir){ //called when the server receives an ls command
+    const char* path = currDir;
 
-    FILE* dirList = fopen("dirList.txt", "w");
+    FILE* dirList = fopen("dirList.txt", "w+");
     DIR* d = opendir(path);
     if (d == NULL) return;
 
