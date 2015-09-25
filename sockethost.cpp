@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <stdio.h>
 
 
 using namespace std;
@@ -97,7 +98,7 @@ SocketHost::SocketHost(MainWindow* Window)
 void SocketHost::listDirectories(const char* currDir){ //called when the server receives an ls command
     const char* path = currDir;
 
-    FILE* dirList = fopen("dirList.txt", "w+");
+    FILE* dirList = fopen("dirList.txt", "w+"); //overwrite the file
     DIR* d = opendir(path);
     if (d == NULL) return;
 
@@ -107,4 +108,9 @@ void SocketHost::listDirectories(const char* currDir){ //called when the server 
     }
     closedir(d);
     fclose(dirList);
+}
+
+void SocketHost::changeDirectory(const char * currDir){
+    const char* path = currDir;
+    chdir(path); //changes the directory FOR THE CURRENT WORKING PROCESS
 }
