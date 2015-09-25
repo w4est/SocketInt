@@ -22,7 +22,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_ClientButton_clicked()
 {
-    SocketClient ClientThing;
+    string PortToSend = this->ui->HostPort->toPlainText().toStdString();
+    if (atoi (PortToSend.c_str()) <= 0){ //Make sure that the port number is usable (>-1)
+        //This isn't going to work.
+        this->ui->ConsoleText->setText("Please use a valid port number\n");
+    }
+    else{
+        SocketClient ClientThing(atoi(PortToSend.c_str())); //Send the port
+    }
 }
 
 void MainWindow::on_HostButton_clicked()

@@ -4,7 +4,8 @@
 class SocketClient
 {
 public:
-    SocketClient();
+    SocketClient(int);
+
 };
 
 #endif // SOCKETCLIENT_H

@@ -15,10 +15,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     sockethost.cpp \
-    socketclient.cpp
+    socketclient.cpp \
+    clientform.cpp
 
 HEADERS  += mainwindow.h \
     sockethost.h \
-    socketclient.h
+    socketclient.h \
+    clientform.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    clientform.ui
