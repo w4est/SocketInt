@@ -12,14 +12,12 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#define RCVBUFSIZE 32
 
 using namespace std;
 
 SocketHost::SocketHost(MainWindow* Window)
 {
-    void HandleTCPClient(int clntSocket); //TODO MOVE THIS INTO A CLASS
-
-
     int servSock; /* server socket */
     int clntSock; /* client socket */
     string port; //Create a string to hold the port number
@@ -84,15 +82,13 @@ SocketHost::SocketHost(MainWindow* Window)
         //clntSock is connected to a client!
         Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() + "Handling client" + inet_ntoa(echoClntAddr.sin_addr));
 
-        //HandleTCPClient(clntSock); //Make this function!
-        close(servSock); //Need to move to another file to make this work!
+        HandleTCPClient(clntSock); //Make this function!
+
     }
 
     //If it reaches here. we are doomed.
 
-
-
-
+    //close(servSock); //Need to move to another file to make this work!
 }
 
 //create a file dirList.txt for the server to read from and send line by line
@@ -118,4 +114,19 @@ void SocketHost::makeDirectory(const char *currDir){
     if(stat(currDir, &st) ==-1){
         mkdir(currDir, 0700);
     }
+}
+
+void SocketHost::HandleTCPClient(int clntSocket){
+    char echoBuffer[RCVBUFSIZE];
+    int recvMsgSize;
+
+    if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+        printf("Die failed");
+    while (recvMsgSize > 0){
+        if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
+            printf("Die failed");
+        if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+            printf("recv() failed");
+    }
+    close(clntSocket);
 }

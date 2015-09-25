@@ -32,10 +32,10 @@ SocketClient::SocketClient(int Port)
     echoString = "Hello";
     //Create a new process so we don't process block, buttons only make threads
 
-    pid = fork();
+    //pid = fork();
 
-    if (pid == 0)
-        {
+    //if (pid == 0)
+       // {
         //ClientForm form; //Create socket form
         //form.show(); //Doesn't work?
 
@@ -79,18 +79,18 @@ SocketClient::SocketClient(int Port)
         close(sock);
         kill(pid, SIGTERM);
         //exit(0);
-    }
-    else if (pid == -1)
-    {
-        printf("Process fork error!");
+    //}
+//    else if (pid == -1)
+//    {
+//        printf("Process fork error!");
 
 
-    }
-    else{
-        printf("Keeping the form running");
+//    }
+//    else{
+//        printf("Keeping the form running");
 
 
-    }
+//    }
 
 
 

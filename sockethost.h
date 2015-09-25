@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <dirent.h>
 
-
 class SocketHost
 {
 public:
@@ -13,6 +12,7 @@ public:
     void listDirectories(const char*);
     void changeDirectory(const char*);
     void makeDirectory(const char*);
+    void HandleTCPClient(int clntSocket);
 };
 
 #endif // SOCKETHOST_H
