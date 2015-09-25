@@ -9,8 +9,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <sys/stat.h>
 
-#include <dirent.h>
 
 using namespace std;
 
@@ -95,11 +96,9 @@ SocketHost::SocketHost(MainWindow* Window)
 }
 
 //create a file dirList.txt for the server to read from and send line by line
-void SocketHost::listDirectories(){ //called when the server receives an ls command
-    const char* path = ".";
-
-    FILE* dirList = fopen("dirList.txt", "w");
-    DIR* d = opendir(path);
+void SocketHost::listDirectories(const char* currDir){ //called when the server receives an ls command
+    FILE* dirList = fopen("dirList.txt", "w+"); //overwrite the file
+    DIR* d = opendir(currDir);
     if (d == NULL) return;
 
     for(struct dirent *de = NULL; (de = readdir(d)) != NULL; ){
@@ -108,4 +107,15 @@ void SocketHost::listDirectories(){ //called when the server receives an ls comm
     }
     closedir(d);
     fclose(dirList);
+}
+
+void SocketHost::changeDirectory(const char *currDir){
+    chdir(currDir); //changes the directory FOR THE CURRENT WORKING PROCESS
+}
+
+void SocketHost::makeDirectory(const char *currDir){
+    struct stat st = {0};
+    if(stat(currDir, &st) ==-1){
+        mkdir(currDir, 0700);
+    }
 }
