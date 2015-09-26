@@ -18,6 +18,9 @@ using namespace std;
 
 SocketHost::SocketHost(MainWindow* Window)
 {
+    pid_t pid; //Process id.
+
+
     int servSock; /* server socket */
     int clntSock; /* client socket */
     string port; //Create a string to hold the port number
@@ -67,7 +70,12 @@ SocketHost::SocketHost(MainWindow* Window)
 
     Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Listening.\n");
 
-    while (0){ //Run Forever!
+    pid = fork();
+
+    if (pid == 0)
+    {
+    while (1){ //Run Forever!
+        Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Still Listening. \n");
 
         //Set the size of the in-out parameter
         clntLen = sizeof(echoClntAddr);
@@ -85,7 +93,10 @@ SocketHost::SocketHost(MainWindow* Window)
         HandleTCPClient(clntSock); //Make this function!
 
     }
-
+    }
+    else{
+      //DO NOTHING
+    }
     //If it reaches here. we are doomed.
 
     //close(servSock); //Need to move to another file to make this work!
