@@ -12,7 +12,6 @@
 
 #define RCVBUFSIZE 32 /*Size ofreceive buff */
 
-//void DieWithError(char* errorMessage);
 
 
 
@@ -32,16 +31,17 @@ SocketClient::SocketClient(int Port)
     echoString = "Hello";
     //Create a new process so we don't process block, buttons only make threads
 
-    pid = fork();
+    //pid = fork();
 
-    if (pid == 0)
-        {
+    //if (pid == 0)
+      //  {
         //ClientForm form; //Create socket form
         //form.show(); //Doesn't work?
 
         if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-           {//DieWithError("socket() failed");
-            printf("Socket failed to create!");
+           {
+            printf("Socket failed to create! \n");
+            return;
 
         }
         memset(&echoServAddr, 0, sizeof(echoServAddr));
@@ -54,8 +54,10 @@ SocketClient::SocketClient(int Port)
 
         if(connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
             {
-            //DieWithError("connect() failed");
-            printf("connect failed!");
+
+            printf("connect failed! \n");
+            fflush(stdout);
+            return;
 
         }
 
@@ -63,37 +65,38 @@ SocketClient::SocketClient(int Port)
 
         if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
             {
-            printf("Send failed! Different number of bytes then expected");
-
+            printf("Send failed! Different number of bytes then expected \n");
+            return;
         }
 
         totalBytesRcvd = 0;
         printf("Recieved: ");
         while (totalBytesRcvd < echoStringLen){
            if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
-             //DieWithError("recv() failed or connection closed prematurely");
+             {
              printf("Connection closed early or recv() failure!");
+             return;
+            }
              totalBytesRcvd += bytesRcvd;
              echoBuffer[bytesRcvd] = '\0';
              printf(echoBuffer);
         }
 
         printf("\n");
+        fflush(stdout);
         close(sock);
-        kill(pid, SIGTERM);
+        //kill(pid, SIGTERM);
         //exit(0);
-    }
-    else if (pid == -1)
-    {
-        printf("Process fork error!");
 
 
-    }
-    else{
-        printf("Keeping the form running");
-
-
-    }
+    //}
+    //else if (pid == -1)
+    //{
+       // printf("Process fork error!");
+   // }
+    //else{
+        //printf("Keeping the form running");
+   // }
 
 
 

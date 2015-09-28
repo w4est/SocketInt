@@ -1,6 +1,6 @@
 #include "sockethost.h"
 #include "ui_mainwindow.h"
-
+#include <signal.h>
 #include <iostream>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -18,7 +18,7 @@ using namespace std;
 
 SocketHost::SocketHost(MainWindow* Window)
 {
-    pid_t pid; //Process id.
+
 
 
     int servSock; /* server socket */
@@ -35,6 +35,8 @@ SocketHost::SocketHost(MainWindow* Window)
 
     if (atoi (port.c_str()) <= 0){ //Make sure that the port number is usable (>-1)
         //This isn't going to work.
+        printf("Error, invalid port number");
+        return;
     }
 
     echoServPort = atoi(port.c_str()); //Convert string to int
@@ -43,6 +45,7 @@ SocketHost::SocketHost(MainWindow* Window)
         {
 
          Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() + "Socket failed to create, Exiting.\n");
+         return;
     }
 
     Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() + "Socket Created at " + port.c_str() + ".\n");
@@ -57,6 +60,7 @@ SocketHost::SocketHost(MainWindow* Window)
     if (bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
     {
         Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Bind Error, Exiting. \n");
+        return;
     }
 
     Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Socket Bound.\n");
@@ -64,42 +68,53 @@ SocketHost::SocketHost(MainWindow* Window)
     //Mark the socket so it will listen
     if (listen(servSock, 5 /*Maximum*/) < 0)
     {
-        //TODO DIE WITH ERROR LISTEN FAILED
+
         Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Listening Error. Exiting.\n");
+        close(servSock); //close binded socket
+        return;
     }
 
     Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Listening.\n");
-
+    fflush(stdout);
     pid = fork();
 
     if (pid == 0)
     {
-    while (1){ //Run Forever!
-        Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Still Listening. \n");
+        printf("child created\n");
+        fflush(stdout);
+        while (1){ //Run Forever!
+            Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() +"Still Listening. \n");
 
-        //Set the size of the in-out parameter
-        clntLen = sizeof(echoClntAddr);
+            //Set the size of the in-out parameter
+            clntLen = sizeof(echoClntAddr);
 
-        //wait for a client to connect
-        if ((clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen)) <0 )
-        {
-            //DIE WITH ERROR Accept failed
-            printf("Die failed");
+            //wait for a client to connect
+            if ((clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen)) <0 )
+            {
+                //Accept failed
+                printf("Accept failed");
+                fflush(stdout);
+                close(servSock);
+                exit(0);
+            }
+
+            //clntSock is connected to a client!
+            Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() + "Handling client" + inet_ntoa(echoClntAddr.sin_addr));
+
+            HandleTCPClient(clntSock); //Deal with client.
+            close(servSock);
+            exit(0);
+
         }
-
-        //clntSock is connected to a client!
-        Window->ui->ConsoleText->setText(Window->ui->ConsoleText->text() + "Handling client" + inet_ntoa(echoClntAddr.sin_addr));
-
-        HandleTCPClient(clntSock); //Make this function!
-
-    }
     }
     else{
       //DO NOTHING
+        printf("I am the parent, and I am done creating a child \n");
+        fflush(stdout);
+        close(servSock);
     }
-    //If it reaches here. we are doomed.
 
-    //close(servSock); //Need to move to another file to make this work!
+
 }
 
 //create a file dirList.txt for the server to read from and send line by line
@@ -132,12 +147,21 @@ void SocketHost::HandleTCPClient(int clntSocket){
     int recvMsgSize;
 
     if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
-        printf("Die failed");
+        printf("Recv failed");
     while (recvMsgSize > 0){
         if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-            printf("Die failed");
+            printf("Request failed");
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
             printf("recv() failed");
     }
     close(clntSocket);
+}
+
+SocketHost::~SocketHost(){
+//    if (pid > 0){ // If parent, clean up the child process.
+//      kill(pid,SIGKILL);
+//      printf("Killing child");
+//      fflush(stdout);
+//    }
+
 }

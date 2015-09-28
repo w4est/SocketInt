@@ -13,6 +13,12 @@ public:
     void changeDirectory(const char*);
     void makeDirectory(const char*);
     void HandleTCPClient(int clntSocket);
+    ~SocketHost();
+
+protected:
+    pid_t pid; //Process id.
+
+
 };
 
 #endif // SOCKETHOST_H
