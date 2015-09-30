@@ -13,7 +13,7 @@
 
 
 
-SocketClient::SocketClient(int Port)
+SocketClient::SocketClient(int Port, string ip)
 {
     int sock;
     struct sockaddr_in echoServAddr;
@@ -24,7 +24,8 @@ SocketClient::SocketClient(int Port)
     unsigned int echoStringLen;
     int bytesRcvd, totalBytesRcvd;
 
-    servIP = "127.0.0.1"; //TODO make these come from form
+    //servIP = "127.0.0.1"; //TODO make these come from form
+    servIP = (char*) ip.c_str();
     echoString = "Hello";
     //Create a new process so we don't process block, buttons only make threads
 
