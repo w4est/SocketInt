@@ -47,7 +47,7 @@ SocketClient::SocketClient(int Port)
         memset(&echoServAddr, 0, sizeof(echoServAddr));
         echoServAddr.sin_family = AF_INET;
         echoServAddr.sin_addr.s_addr = inet_addr(servIP);
-        echoServAddr.sin_port = htons(echoServPort + 1);
+        echoServAddr.sin_port = htons(echoServPort);
 
 
 
