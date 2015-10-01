@@ -1,7 +1,12 @@
 #include "sockethost.h"
+#include <iostream>
 
+using namespace std;
 
 int main(int argc, char *argv[])
 {
-    SocketHost Host(3000);
+    int port;
+    cout << "What port would you like to use?" << endl;
+    cin >> port;
+    SocketHost Host(port);
 }

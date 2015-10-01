@@ -13,19 +13,20 @@
 
 
 
-SocketClient::SocketClient(int Port)
+SocketClient::SocketClient(int Port, string ip)
 {
     int sock;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort = Port; //Make sure we are using the server port here!
     char *servIP;
-    char *echoString;
+    char  echoString[RCVBUFSIZE];
     char echoBuffer[RCVBUFSIZE];
     unsigned int echoStringLen;
     int bytesRcvd, totalBytesRcvd;
 
-    servIP = "127.0.0.1"; //TODO make these come from form
-    echoString = "Hello";
+    //servIP = "127.0.0.1"; //TODO make these come from form
+    servIP = (char*) ip.c_str();
+    strncpy(echoString, "Hello", sizeof(echoString));
     //Create a new process so we don't process block, buttons only make threads
 
     
@@ -56,30 +57,32 @@ SocketClient::SocketClient(int Port)
             return;
 
         }
-
-        echoStringLen = strlen(echoString);
-
-        if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
-            {
-            printf("Send failed! Different number of bytes then expected \n");
-            return;
-        }
-
-        totalBytesRcvd = 0;
-        printf("Recieved: ");
-        while (totalBytesRcvd < echoStringLen){
-           if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
-             {
-             printf("Connection closed early or recv() failure!");
-             return;
-            }
-             totalBytesRcvd += bytesRcvd;
-             echoBuffer[bytesRcvd] = '\0';
-             printf(echoBuffer);
-        }
-
-        printf("\n");
-        fflush(stdout);
+	while(strcmp(echoString, "Close") != 0){
+		echoStringLen = strlen(echoString);
+        	if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
+            	{
+            		printf("Send failed! Different number of bytes then expected \n");
+            		return;
+        	}
+		
+        	totalBytesRcvd = 0;
+        	printf("Recieved: ");
+        	while (totalBytesRcvd < echoStringLen){
+           		if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
+             		{
+             			printf("Connection closed early or recv() failure!");
+             		return;
+            		}
+             		totalBytesRcvd += bytesRcvd;
+             		echoBuffer[bytesRcvd] = '\0';
+             		printf(echoBuffer);
+        	}
+		
+        	printf("\n");
+        	fflush(stdout);
+                printf("Command: ");
+		scanf("%s", echoString);
+	}
         close(sock);
      
 
