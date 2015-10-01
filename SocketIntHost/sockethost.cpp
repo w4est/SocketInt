@@ -92,10 +92,9 @@ SocketHost::SocketHost(int port)
             cout << "Handling client" << inet_ntoa(echoClntAddr.sin_addr) << endl;
 
             HandleTCPClient(clntSock); //Deal with client.
-            close(servSock);
-            exit(0);
-
-}
+	}
+      	close(servSock);
+	exit(0);
 }
 
 //create a file dirList.txt for the server to read from and send line by line
@@ -126,6 +125,7 @@ void SocketHost::makeDirectory(const char *currDir){
 void SocketHost::HandleTCPClient(int clntSocket){
     char echoBuffer[RCVBUFSIZE];
     int recvMsgSize;
+    char cwd[1024];
 
     if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
         printf("Recv failed");
@@ -134,8 +134,11 @@ void SocketHost::HandleTCPClient(int clntSocket){
             printf("Request failed");
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
             printf("recv() failed");
+	printf("Received: %s\n" , echoBuffer);
+	if(strcmp(echoBuffer, "ls") == 0)
+	    listDirectories(getcwd(cwd, sizeof(cwd)));
     }
-    close(clntSocket);
+   close(clntSocket);
 }
 
 SocketHost::~SocketHost(){
