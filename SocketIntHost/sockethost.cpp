@@ -112,8 +112,12 @@ void SocketHost::listDirectories(const char* currDir){ //called when the server 
     fclose(dirList);
 }
 
-void SocketHost::changeDirectory(const char *currDir){
+char* SocketHost::changeDirectory(const char *currDir, const char *subDir){
+    char* newDir ="";
+    strcpy(newDir, currDir);
+    strcat(newDir, subDir);
     chdir(currDir); //changes the directory FOR THE CURRENT WORKING PROCESS
+    return newDir;
 }
 
 void SocketHost::makeDirectory(const char *currDir){
