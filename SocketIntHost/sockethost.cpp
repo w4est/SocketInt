@@ -138,9 +138,17 @@ void SocketHost::HandleTCPClient(int clntSocket){
             printf("Request failed");
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
             printf("recv() failed");
+	echoBuffer[recvMsgSize] = '\0';
 	printf("Received: %s\n" , echoBuffer);
-	if(strcmp(echoBuffer, "ls") == 0)
+	if(strcmp(echoBuffer, "ls") == 0){
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
+	    FILE* dirList = fopen("dirList.txt", "r");
+	    while(fgets(echoBuffer, sizeof(echoBuffer), dirList)){
+	       if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
+	           printf("Send() falied");
+            }
+	    fclose(dirList);
+	}
     }
    close(clntSocket);
 }

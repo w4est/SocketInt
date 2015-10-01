@@ -1,0 +1,10 @@
+makefile
+dirList.txt
+.
+host
+sockethost.cpp
+sockethost.o
+..
+sockethost.h
+main.o
+main.cpp
