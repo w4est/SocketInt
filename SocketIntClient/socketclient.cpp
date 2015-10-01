@@ -7,15 +7,17 @@
 #include <unistd.h> /* for close */
 #include <sys/types.h>
 #include <signal.h>
+#include <iostream>
 
 #define RCVBUFSIZE 32 /*Size ofreceive buff */
 
-
+using namespace std;
 
 
 SocketClient::SocketClient(int Port, string ip)
 {
     int sock;
+    string inputline;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort = Port; //Make sure we are using the server port here!
     char *servIP;
@@ -57,28 +59,40 @@ SocketClient::SocketClient(int Port, string ip)
             return;
 
         }
+	while(1)
 
-        echoStringLen = strlen(echoString);
+	{
+		cout << "What do you want to do? (exit to exit)" << endl;
+		getline(cin,inputline);
+	
+		if (inputline == "exit"){
+			break;
+		}
+		
+		echoStringLen = strlen(inputline.c_str());
 
-        if(send(sock, echoString, echoStringLen, 0) != echoStringLen)
-            {
-            printf("Send failed! Different number of bytes then expected \n");
-            return;
-        }
+		if(send(sock, inputline.c_str(), echoStringLen, 0) != echoStringLen)
+		    {
+		    printf("Send failed! Different number of bytes then expected \n");
+		    return;
+		}
 
-        totalBytesRcvd = 0;
-        printf("Recieved: ");
-        while (totalBytesRcvd < echoStringLen){
-           if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
-             {
-             printf("Connection closed early or recv() failure!");
-             return;
-            }
-             totalBytesRcvd += bytesRcvd;
-             echoBuffer[bytesRcvd] = '\0';
-             printf(echoBuffer);
-        }
-
+		totalBytesRcvd = 0;
+		printf("Recieved: ");
+		while (totalBytesRcvd < echoStringLen){
+		   if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
+		     {
+		     printf("Connection closed early or recv() failure!\n");
+		     fflush(stdout);
+		     return;
+		    }
+		     totalBytesRcvd += bytesRcvd;
+		     echoBuffer[bytesRcvd] = '\0';
+		     printf(echoBuffer);
+		}
+		
+	}
+	printf("Closing connection");
         printf("\n");
         fflush(stdout);
         close(sock);
