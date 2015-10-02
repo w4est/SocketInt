@@ -66,8 +66,8 @@ SocketClient::SocketClient(int Port, string ip)
         	}
 		
 		if (strcmp(echoString, "ls") == 0){
-			printf("Starting list procedure");
-			ListDirectory(sock);
+			
+			ListDirectory(sock); //List Directory
 		}
 		else{
 
@@ -101,9 +101,9 @@ SocketClient::SocketClient(int Port, string ip)
 void SocketClient::ListDirectory(int sock)
 {
 	long Input;
-	string Directory;
-	int totalBytesRcvd = 0;
-	int bytesRcvd;
+	char Directory[32];
+	long totalBytesRcvd = 0;
+	long bytesRcvd = 0;
 	while (totalBytesRcvd < sizeof(long)){ //Get a long
    		if((bytesRcvd = recv(sock, &Input, RCVBUFSIZE - 1, 0)) <=0)
      		{
@@ -120,16 +120,21 @@ void SocketClient::ListDirectory(int sock)
             		printf("Send failed! Different number of bytes then expected \n");
             		return;
         	}
-		printf("Sent ok");
+		printf("Sent ok \n");
 		fflush(stdout);
-	while (totalBytesRcvd < (long) Input){ //Get a long
-   		if((bytesRcvd = recv(sock, &Directory, RCVBUFSIZE - 1, 0)) <=0)
+		totalBytesRcvd = 0;
+		bytesRcvd = 0;
+	while (totalBytesRcvd < Input){ //Get a long
+		printf("%d", totalBytesRcvd);
+		fflush(stdout);
+   		if((bytesRcvd = recv(sock, Directory, RCVBUFSIZE - 1, 0)) <=0)
      		{
      			printf("Connection closed early can not get Directory!");
      		return;
     		}
      		totalBytesRcvd += bytesRcvd;
-     		printf(Directory.c_str());
+		Directory[bytesRcvd] = '\0';
+     		printf(Directory);
 		}	
-
+		fflush(stdout);
 }
