@@ -4,6 +4,7 @@ dirList.txt
 host
 sockethost.cpp
 sockethost.o
+sockethost.cpp~
 ..
 sockethost.h
 main.o

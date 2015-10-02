@@ -1,5 +1,4 @@
 #include "sockethost.h"
-#include <signal.h>
 #include <iostream>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -17,6 +16,7 @@ using namespace std;
 
 SocketHost::SocketHost(int port)
 {
+
 
 
 
@@ -132,11 +132,14 @@ void SocketHost::HandleTCPClient(int clntSocket){
     char cwd[1024];
     long int fileSize;
 
-    if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+    if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0) //Look for Hello
         printf("Recv failed");
-    while (recvMsgSize > 0){
+
+    echoBuffer[recvMsgSize] = '\0';
+    while (recvMsgSize > 0){   //Loop. until told to die. (TODO) MAKE DIE command
         if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
             printf("Request failed");
+
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
             printf("recv failed");
         echoBuffer[recvMsgSize] = '\0';
@@ -150,7 +153,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
                 printf("Send() failed");
             }
 	    printf("File Size: %ld\n: ", fileSize);
-            if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0 )
+            if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0 )
 	        printf("recv() failed");
             echoBuffer[recvMsgSize] = '\0';
             printf("echoBuffer: %s\n", echoBuffer);
@@ -158,12 +161,15 @@ void SocketHost::HandleTCPClient(int clntSocket){
                 printf("Received the ok\n");
             fflush(stdout);
             fseek(dirList, 0, SEEK_SET);
-	    while(fgets(echoBuffer, sizeof(echoBuffer), dirList) != NULL){
-              fflush(stdout);
-	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
+	    memset(echoBuffer,0,sizeof(echoBuffer));
+	    while(fgets(echoBuffer, RCVBUFSIZE-1, dirList) != NULL){ //STOPS AT NEWLINE> NEED NEW METHOD!
+		printf("%s",echoBuffer);
+		printf("Char:%d_\n",strlen(echoBuffer));              
+		fflush(stdout);
+	      if(send(clntSocket, echoBuffer, RCVBUFSIZE-1, 0) < 0)
 	        printf("Send() falied");
             }
-          printf("echiBuffer: %s\n", echoBuffer);
+          
 	  fclose(dirList);
 	}
     }
