@@ -138,8 +138,8 @@ void SocketHost::HandleTCPClient(int clntSocket){
         if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
             printf("Request failed");
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
-            printf("recv() failed");
-	echoBuffer[recvMsgSize] = '\0';
+            printf("recv failed");
+        echoBuffer[recvMsgSize] = '\0';
 	printf("Received: %s\n" , echoBuffer);
 	if(strcmp(echoBuffer, "ls") == 0){
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
@@ -150,15 +150,20 @@ void SocketHost::HandleTCPClient(int clntSocket){
                 printf("Send() failed");
             }
 	    printf("File Size: %ld\n: ", fileSize);
-            if((recvMsgSize = recv(clntSocket, echoBuffer,RCVBUFSIZE, 0)) < 0 )
+            if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0 )
 	        printf("recv() failed");
             echoBuffer[recvMsgSize] = '\0';
+            printf("echoBuffer: %s\n", echoBuffer);
             if(strcmp(echoBuffer, "ok") == 0)
-                printf("Received the ok");
-	    while(fgets(echoBuffer, RCVBUFSIZE, dirList)){
+                printf("Received the ok\n");
+            fflush(stdout);
+            fseek(dirList, 0, SEEK_SET);
+	    while(fgets(echoBuffer, sizeof(echoBuffer), dirList) != NULL){
+              fflush(stdout);
 	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
 	        printf("Send() falied");
             }
+          printf("echiBuffer: %s\n", echoBuffer);
 	  fclose(dirList);
 	}
     }
