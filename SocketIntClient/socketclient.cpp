@@ -65,23 +65,31 @@ SocketClient::SocketClient(int Port, string ip)
             		return;
         	}
 		
-        	totalBytesRcvd = 0;
-        	printf("Recieved: ");
-        	while (totalBytesRcvd < echoStringLen){
-           		if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
-             		{
-             			printf("Connection closed early or recv() failure!");
-             		return;
-            		}
-             		totalBytesRcvd += bytesRcvd;
-             		echoBuffer[bytesRcvd] = '\0';
-             		printf(echoBuffer);
-        	}
+		if (strcmp(echoString, "ls") == 0){
+			printf("Starting list procedure");
+			ListDirectory(sock);
+		}
+		else{
+
+			totalBytesRcvd = 0;
+			printf("Recieved: ");
+			while (totalBytesRcvd < echoStringLen){
+		   		if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) <=0)
+		     		{
+		     			printf("Connection closed early or recv() failure!");
+		     		return;
+		    		}
+		     		totalBytesRcvd += bytesRcvd;
+		     		echoBuffer[bytesRcvd] = '\0';
+		     		printf(echoBuffer);
+			}
 		
-        	printf("\n");
-        	fflush(stdout);
+			printf("\n");
+			fflush(stdout);
+		}
                 printf("Command: ");
 		scanf("%s", echoString);
+		
 	}
         close(sock);
      
@@ -89,3 +97,39 @@ SocketClient::SocketClient(int Port, string ip)
 
 }
 
+
+void SocketClient::ListDirectory(int sock)
+{
+	long Input;
+	string Directory;
+	int totalBytesRcvd = 0;
+	int bytesRcvd;
+	while (totalBytesRcvd < sizeof(long)){ //Get a long
+   		if((bytesRcvd = recv(sock, &Input, RCVBUFSIZE - 1, 0)) <=0)
+     		{
+     			printf("Connection closed early or recv() failure!");
+     		return;
+    		}
+     		totalBytesRcvd += bytesRcvd;
+     		printf("File Size: %l",Input);
+		fflush(stdout);
+		}
+	
+	if(send(sock, "ok", 2, 0) != 2) //Send that we got the length of file.
+            	{
+            		printf("Send failed! Different number of bytes then expected \n");
+            		return;
+        	}
+		printf("Sent ok");
+		fflush(stdout);
+	while (totalBytesRcvd < (long) Input){ //Get a long
+   		if((bytesRcvd = recv(sock, &Directory, RCVBUFSIZE - 1, 0)) <=0)
+     		{
+     			printf("Connection closed early can not get Directory!");
+     		return;
+    		}
+     		totalBytesRcvd += bytesRcvd;
+     		printf(Directory.c_str());
+		}	
+
+}
