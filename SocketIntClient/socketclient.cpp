@@ -111,7 +111,7 @@ void SocketClient::ListDirectory(int sock)
      		return;
     		}
      		totalBytesRcvd += bytesRcvd;
-     		printf("File Size: %l",Input);
+     		printf("File Size: %ld\n",Input);
 		fflush(stdout);
 		}
 	
