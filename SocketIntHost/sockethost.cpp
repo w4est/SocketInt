@@ -152,7 +152,8 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	    printf("File Size: %ld\n: ", fileSize);
             if((recvMsgSize = recv(clntSocket, echoBuffer,RCVBUFSIZE, 0)) < 0 )
 	        printf("recv() failed");
-            printf("Received the ok");
+            if(strcmp(echoBuffer, "ok"))
+                printf("Received the ok");
 	    while(fgets(echoBuffer, RCVBUFSIZE, dirList)){
 	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
 	        printf("Send() falied");
