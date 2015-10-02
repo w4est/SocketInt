@@ -130,6 +130,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
     char echoBuffer[RCVBUFSIZE];
     int recvMsgSize;
     char cwd[1024];
+    long int fileSize;
 
     if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
         printf("Recv failed");
@@ -143,11 +144,16 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	if(strcmp(echoBuffer, "ls") == 0){
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
 	    FILE* dirList = fopen("dirList.txt", "r");
-	    while(fgets(echoBuffer, sizeof(echoBuffer), dirList)){
-	       if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
-	           printf("Send() falied");
+	    fseek(dirList, 0L, SEEK_END);
+            fileSize = ftell(dirList);
+	    if(send(clntSocket, &fileSize, RCVBUFSIZE, 0) < 0){
+                printf("Send() failed");
             }
-	    fclose(dirList);
+	    while(fgets(echoBuffer, fileSize, dirList)){
+	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
+	        printf("Send() falied");
+            }
+	  fclose(dirList);
 	}
     }
    close(clntSocket);
