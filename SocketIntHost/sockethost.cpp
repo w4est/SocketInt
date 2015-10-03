@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <fstream>
 
 #define RCVBUFSIZE 32
 
@@ -157,24 +158,78 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	        printf("recv() failed");
             echoBuffer[recvMsgSize] = '\0';
             printf("echoBuffer: %s\n", echoBuffer);
+	    printf("MSG SIZE: %d\n", recvMsgSize);
             if(strcmp(echoBuffer, "ok") == 0)
                 printf("Received the ok\n");
             fflush(stdout);
             fseek(dirList, 0, SEEK_SET);
 	    memset(echoBuffer,0,sizeof(echoBuffer));
-	    while(fgets(echoBuffer, RCVBUFSIZE-1, dirList) != NULL){ //STOPS AT NEWLINE> NEED NEW METHOD!
+	   /* while(fread(echoBuffer,1, RCVBUFSIZE, dirList) != 0){ //STOPS AT NEWLINE> NEED NEW METHOD!
 		printf("%s",echoBuffer);
-		printf("Char:%d_\n",strlen(echoBuffer));              
+		printf("\nChar:%d_\n",strlen(echoBuffer));              
 		fflush(stdout);
-	      if(send(clntSocket, echoBuffer, RCVBUFSIZE-1, 0) < 0)
+	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
 	        printf("Send() falied");
             }
-          
-	  fclose(dirList);
+          */
+	   fclose(dirList);
+	   Read(dirList, clntSocket); //Read and send!
+
+	  
 	}
     }
    close(clntSocket);
 }
+
+void SocketHost::Read(FILE* file, int sock){ //Read file in 32 bytes packets and send.
+
+  int READ_SIZE = 32;
+
+  ifstream input("dirList.txt", ios::in | ios::binary);
+
+  // get the file length
+  input.seekg(0, input.end);
+  int length = input.tellg();
+  input.seekg(0, input.beg); 
+
+
+  char*  buffer = new char[32];
+  cout << "File Length: " << length << endl;
+  cout << "Reading 32-bytes at a time...\n";
+  
+  /* loop until the end of file is not reached */
+  do
+  {
+    memset(buffer,0, 32);
+    if(length - input.tellg() >= 32){
+      
+      input.readsome(buffer, READ_SIZE);
+      if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
+	   printf("Send() falied");
+	   return;
+      }
+      cout << buffer << " | ";
+      cout << input.tellg() << "\n";
+    }
+    else{
+      int x = length - input.tellg();
+      input.readsome(buffer, x);
+      if(send(sock, buffer, x, 0) < 0){ //Don't need the end file bit for DirList
+	   printf("Send() falied");
+	   return;
+      }
+      cout << input.tellg() << "\n";
+      break;
+
+    }
+
+  }while(!input.eof());
+  input.close();
+  cout << "EoF reached\n";
+
+
+}
+
 
 SocketHost::~SocketHost(){
 //    if (pid > 0){ // If parent, clean up the child process.

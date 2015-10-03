@@ -2,6 +2,7 @@
 #define SOCKETHOST_H
 #include <unistd.h>
 #include <dirent.h>
+#include <stdio.h>
 
 class SocketHost
 {
@@ -15,7 +16,7 @@ public:
 
 protected:
     pid_t pid; //Process id.
-
+    void Read(FILE*, int);
 
 };
 

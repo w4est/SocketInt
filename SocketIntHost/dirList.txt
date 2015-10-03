@@ -5,6 +5,7 @@ host
 sockethost.cpp
 sockethost.o
 sockethost.cpp~
+sockethost.h~
 ..
 sockethost.h
 main.o
