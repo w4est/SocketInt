@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <limits.h>
 
 #define RCVBUFSIZE 32
 
@@ -113,13 +114,54 @@ void SocketHost::listDirectories(const char* currDir){ //called when the server 
 }
 
 void SocketHost::changeDirectory(const char *newDir, int sock){
-    char buffer[RCVBUFSIZE];   
+    char buffer[PATH_MAX+1];   
+    char packet[RCVBUFSIZE];
+
+    int count = 0;
+
     chdir(newDir); //changes the directory FOR THE CURRENT WORKING PROCESS
+    
     if(getcwd(buffer, sizeof(buffer)) != NULL){
-       if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
-           printf("send failed()");
-       }
-    }
+	
+	while((count*32) < (int)strlen(buffer)) //For every char
+  	{
+        memset(packet,0, RCVBUFSIZE); //Set packet to zero
+	if ((strlen(buffer) - (count*32)) >= 32) //Packetize the buffer, and send it.
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			packet[i] = buffer[(count*32) + i];
+				
+		}
+		if(send(sock, packet, RCVBUFSIZE, 0) < 0){
+		   printf("Send() falied");
+		   return;
+		}
+		printf("%s",packet);
+	}
+	else{
+		int x = strlen(buffer) - (count*32);
+		for (int i = 0; i < x; i++)
+		{
+			packet[i] = buffer[(count*32) + i];
+				
+		}
+		if(send(sock, packet, RCVBUFSIZE, 0) < 0){
+		   printf("Send() failed");
+		   return;
+		}
+		
+		
+		}
+	count++;
+		}
+	
+     
+   	 }
+	
+	if(send(sock, "///", RCVBUFSIZE, 0) < 0){ //Send Acknowledgement, the client needs
+	   printf("send failed()");
+	}
 }
 
 void SocketHost::makeDirectory(const char *currDir){
@@ -131,7 +173,7 @@ void SocketHost::makeDirectory(const char *currDir){
 
 void SocketHost::HandleTCPClient(int clntSocket){
     char echoBuffer[RCVBUFSIZE];
-    int recvMsgSize;
+    int recvMsgSize = 1;
     char cwd[1024];
     long int fileSize;
     
@@ -145,17 +187,19 @@ void SocketHost::HandleTCPClient(int clntSocket){
         echoBuffer[recvMsgSize] = '\0';
 	printf("Received: %s\n" , echoBuffer);
 	
-	//hangle cd
-	if(strstr(echoBuffer, "cd") != NULL){
+	//handle cd
+	if(strcmp(echoBuffer, "cd") == 0){
 	  printf("You have chosen to change the directory\n");
-	  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0)//get second word
+        
+	  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)//get second word
             printf("recv() failed");
-          printf("echoBuffer: %s\n", echoBuffer);
+          printf("Changed to: %s\n", echoBuffer);
           changeDirectory(echoBuffer, clntSocket);
+	  
 	}
 
 	//handle ls
-	if(strcmp(echoBuffer, "ls") == 0){
+	else if(strcmp(echoBuffer, "ls") == 0){
 	    fileSize= 0;
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
 	    FILE* dirList = fopen("dirList.txt", "r");
@@ -183,8 +227,9 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	//Parrot back any unknown commands.        
 	else{
 	if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-            printf("Request failed");
-
+            {printf("Request failed");
+		return;
+	    }
 	}
     }
    close(clntSocket);

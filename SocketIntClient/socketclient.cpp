@@ -64,13 +64,38 @@ SocketClient::SocketClient(int Port, string ip)
 
 
       }
-
+	
+      else if(strcmp(echoString, "cd") == 0){
+	printf("To what directory?: ");
+        scanf("%s[^n]",echoString);
+	echoStringLen = strlen(echoString);
+        if(send(sock, echoString, echoStringLen, 0) != (int) echoStringLen){
+        	printf("Send failed! Different number of bytes then expected \n");
+        	return;
+      	}
+	memset(echoBuffer, 0 , RCVBUFSIZE);
+	while(strstr(echoBuffer,"///") == NULL) //Go until terminator.
+	{
+		if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) < 0){
+		    printf("Connection closed early or recv() failure!");
+		    return;
+		  }
+		if (strstr(echoBuffer, "///") == NULL){
+			printf("%s",echoBuffer);
+		}
+		fflush(stdout);
+	}
+	printf("\n");
+	memset(echoBuffer,0,RCVBUFSIZE); //reset in case.
+	      	
+	}
+      
       else{
         /*Echo server*/
         totalBytesRcvd = 0;
 	printf("Recieved: ");
 	while (totalBytesRcvd < (int)echoStringLen){
-	  if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE - 1, 0)) < 0){
+	  if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) < 0){
             printf("Connection closed early or recv() failure!");
 	    return;
 	  }
@@ -86,6 +111,7 @@ SocketClient::SocketClient(int Port, string ip)
       
       printf("Command: ");
       scanf("%s[^n]",echoString);
+      
     }
 
     //Exit client
