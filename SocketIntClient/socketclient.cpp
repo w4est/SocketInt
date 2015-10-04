@@ -89,6 +89,16 @@ SocketClient::SocketClient(int Port, string ip)
 	memset(echoBuffer,0,RCVBUFSIZE); //reset in case.
 	      	
 	}
+	
+	else if(strcmp(echoString, "mkdir") == 0){
+	  printf("What directory?: ");
+	  scanf("%s[^n]", echoString);
+	  echoStringLen = strlen(echoString);
+   	  if(send(sock, echoString, echoStringLen, 0) != (int)echoStringLen){
+	    printf("Send()  failed");
+	    return;
+	  }
+	}
       
       else{
         /*Echo server*/

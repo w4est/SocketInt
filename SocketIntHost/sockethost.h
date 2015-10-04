@@ -13,7 +13,7 @@ public:
     SocketHost(int); //constructor, take ui and use
     void listDirectories(const char*);
     void changeDirectory(const char*, int);
-    void makeDirectory(const char*);
+    void makeDirectory(const char*, int);
     void HandleTCPClient(int);
 
 

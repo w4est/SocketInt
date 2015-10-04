@@ -164,11 +164,18 @@ void SocketHost::changeDirectory(const char *newDir, int sock){
 	}
 }
 
-void SocketHost::makeDirectory(const char *currDir){
+void SocketHost::makeDirectory(const char *currDir, int sock){
     struct stat st = {0};
-    if(stat(currDir, &st) ==-1){
-        mkdir(currDir, 0700);
+    char buffer[PATH_MAX+1];
+
+    if(stat(currDir, &st) == -1){
+      mkdir(currDir, 0700);
+     printf("made directory: %s\n", currDir);
     }
+
+    if(send(sock, buffer, sizeof(buffer), 0) < 0)
+      printf("send() failed");
+    
 }
 
 void SocketHost::HandleTCPClient(int clntSocket){
@@ -186,7 +193,16 @@ void SocketHost::HandleTCPClient(int clntSocket){
             printf("recv failed");
         echoBuffer[recvMsgSize] = '\0';
 	printf("Received: %s\n" , echoBuffer);
-	
+
+	//handle mkdir
+	if(strcmp(echoBuffer, "mkdir") == 0){
+	    printf("echoBuffer: %s\n", echoBuffer);
+	    if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+	      printf("recv() failed");
+            printf("Made to: %s\n", echoBuffer);
+            makeDirectory(echoBuffer, clntSocket);
+	}
+		
 	//handle cd
 	if(strcmp(echoBuffer, "cd") == 0){
 	  printf("You have chosen to change the directory\n");
