@@ -54,10 +54,19 @@ SocketClient::SocketClient(int Port, string ip)
         return;
       }
 
+      /*ask to list the directory*/
       if (strcmp(echoString, "ls") == 0){
         ListDirectory(sock); //List Directory
       }
+      
+      /*if asking for a file!*/
+      else if(strcmp(echoString, "get") == 0){
+
+
+      }
+
       else{
+        /*Echo server*/
         totalBytesRcvd = 0;
 	printf("Recieved: ");
 	while (totalBytesRcvd < (int)echoStringLen){
@@ -78,6 +87,8 @@ SocketClient::SocketClient(int Port, string ip)
       printf("Command: ");
       scanf("%s[^n]",echoString);
     }
+
+    //Exit client
     close(sock);
 }
 

@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <string>
+
+using namespace std;
 
 class SocketHost
 {
@@ -16,7 +19,7 @@ public:
 
 protected:
     pid_t pid; //Process id.
-    void Read(FILE*, int);
+    void Read(string, int);
 
 };
 

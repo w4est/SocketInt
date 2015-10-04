@@ -157,23 +157,15 @@ void SocketHost::HandleTCPClient(int clntSocket){
             if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0 )
 	        printf("recv() failed");
             echoBuffer[recvMsgSize] = '\0';
-            printf("echoBuffer: %s\n", echoBuffer);
-	    printf("MSG SIZE: %d\n", recvMsgSize);
+            
             if(strcmp(echoBuffer, "ok") == 0)
                 printf("Received the ok\n");
             fflush(stdout);
             fseek(dirList, 0, SEEK_SET);
 	    memset(echoBuffer,0,sizeof(echoBuffer));
-	   /* while(fread(echoBuffer,1, RCVBUFSIZE, dirList) != 0){ //STOPS AT NEWLINE> NEED NEW METHOD!
-		printf("%s",echoBuffer);
-		printf("\nChar:%d_\n",strlen(echoBuffer));              
-		fflush(stdout);
-	      if(send(clntSocket, echoBuffer, RCVBUFSIZE, 0) < 0)
-	        printf("Send() falied");
-            }
-          */
 	   fclose(dirList);
-	   Read(dirList, clntSocket); //Read and send!
+
+	   Read("dirList.txt", clntSocket); //Read and send!
 
 	  
 	}
@@ -181,51 +173,95 @@ void SocketHost::HandleTCPClient(int clntSocket){
    close(clntSocket);
 }
 
-void SocketHost::Read(FILE* file, int sock){ //Read file in 32 bytes packets and send.
+void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets and send.
 
   int READ_SIZE = 32;
 
-  ifstream input("dirList.txt", ios::in | ios::binary);
+  ifstream input(file.c_str(), ios::in | ios::binary);
 
   // get the file length
   input.seekg(0, input.end);
-  int length = input.tellg();
+  long length = input.tellg();
   input.seekg(0, input.beg); 
 
+  
 
   char*  buffer = new char[32];
   cout << "File Length: " << length << endl;
   cout << "Reading 32-bytes at a time...\n";
   
+   /*Alternative method. unneeded.*/
+  //char*  filedata = new char[length];
+  //input.read(filedata, length); //Get file into a char array
+
+  //long count = 0;
+
+ /* while((count*32) < length) //For every char
+  {
+        memset(buffer,0, 32); //Set packet to zero
+	if ((length - (count*32)) >= 32)
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			buffer[i] = filedata[(count*32) + i];
+				
+		}
+		if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
+		   printf("Send() Directory falied");
+		   return;
+		}
+		count++;
+		printf("%s |%ld|",buffer,count*32);
+	}
+	else{
+		int x = length - (count*32);
+		for (int i = 0; i < x; i++)
+		{
+			buffer[i] = filedata[(count*32) + i];
+				
+		}
+		if(send(sock, buffer, x, 0) < 0){
+		   printf("Send() Directory failed");
+		   return;
+		}
+		printf("%s |%ld|",buffer,count*32);
+		count++;
+	}
+
+
+
+  }
+*/
+
   /* loop until the end of file is not reached */
   do
   {
     memset(buffer,0, 32);
     if(length - input.tellg() >= 32){
       
-      input.readsome(buffer, READ_SIZE);
+      input.read(buffer, READ_SIZE);
       if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
 	   printf("Send() falied");
 	   return;
       }
-      cout << buffer << " | ";
-      cout << input.tellg() << "\n";
+      //cout << buffer << " | ";
+      //cout << input.tellg() << "\n";
     }
     else{
       int x = length - input.tellg();
-      input.readsome(buffer, x);
-      if(send(sock, buffer, x, 0) < 0){ //Don't need the end file bit for DirList
+      input.read(buffer, x);
+      if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
 	   printf("Send() falied");
 	   return;
       }
-      cout << input.tellg() << "\n";
+      //cout << input.tellg() << "\n";
       break;
 
     }
 
   }while(!input.eof());
   input.close();
-  cout << "EoF reached\n";
+  cout << "Sent DirectoryList\n";
 
 
 }
