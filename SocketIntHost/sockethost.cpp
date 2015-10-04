@@ -136,13 +136,9 @@ void SocketHost::HandleTCPClient(int clntSocket){
     long int fileSize;
     
 
-    if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0) //Look for Hello
-        printf("Recv failed");
-
-    echoBuffer[recvMsgSize] = '\0';
+    
     while (recvMsgSize > 0){   //Loop. until told to die. (TODO) MAKE DIE command
-        if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-            printf("Request failed");
+        
 
         if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
             printf("recv failed");
@@ -160,6 +156,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
 
 	//handle ls
 	if(strcmp(echoBuffer, "ls") == 0){
+	    fileSize= 0;
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
 	    FILE* dirList = fopen("dirList.txt", "r");
 	    fseek(dirList, 0L, SEEK_END);
@@ -183,6 +180,12 @@ void SocketHost::HandleTCPClient(int clntSocket){
 
 	  
 	}
+	//Parrot back any unknown commands.        
+	else{
+	if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
+            printf("Request failed");
+
+	}
     }
    close(clntSocket);
 }
@@ -204,15 +207,15 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
   cout << "File Length: " << length << endl;
   cout << "Reading 32-bytes at a time...\n";
   
-   /*Alternative method. unneeded.*/
-  //char*  filedata = new char[length];
-  //input.read(filedata, length); //Get file into a char array
+   //Alternative method. unneeded.
+  char*  filedata = new char[length];
+  input.read(filedata, length); //Get file into a char array
+  input.close();
+  long count = 0;
 
-  //long count = 0;
-
- /* while((count*32) < length) //For every char
+  while((count*32) < length) //For every char
   {
-        memset(buffer,0, 32); //Set packet to zero
+        memset(buffer,0, READ_SIZE); //Set packet to zero
 	if ((length - (count*32)) >= 32)
 	{
 		for (int i = 0; i < 32; i++)
@@ -225,7 +228,7 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 		   return;
 		}
 		count++;
-		printf("%s |%ld|",buffer,count*32);
+		//printf("%s |%ld|",buffer,count*32);
 	}
 	else{
 		int x = length - (count*32);
@@ -234,20 +237,20 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 			buffer[i] = filedata[(count*32) + i];
 				
 		}
-		if(send(sock, buffer, x, 0) < 0){
+		if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
 		   printf("Send() Directory failed");
 		   return;
 		}
-		printf("%s |%ld|",buffer,count*32);
+		//printf("%s |%ld|",buffer,count*32);
 		count++;
 	}
 
 
 
   }
-*/
 
-  /* loop until the end of file is not reached */
+
+  /* loop until the end of file is not reached 
   do
   {
     memset(buffer,0, 32);
@@ -274,7 +277,7 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
     }
 
   }while(!input.eof());
-  input.close();
+  input.close();*/
   cout << "Sent DirectoryList\n";
 
 

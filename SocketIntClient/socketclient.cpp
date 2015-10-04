@@ -133,7 +133,7 @@ void SocketClient::ListDirectory(int sock)
 		
 	}
      	totalBytesRcvd += bytesRcvd;
-	printf("| %ld |", bytesRcvd);
+	//printf("| %ld |", bytesRcvd);
 	
 	printf("%s", Directory);
 	fflush(stdout);
