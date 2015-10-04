@@ -15,12 +15,12 @@ public:
     void changeDirectory(const char*, int);
     void makeDirectory(const char*);
     void HandleTCPClient(int);
-    ~SocketHost();
+
 
 protected:
     pid_t pid; //Process id.
     void Read(string, int);
-
+    long GetFileSize(string, int);
 };
 
 #endif // SOCKETHOST_H

@@ -6,7 +6,6 @@ sockethost.cpp
 testDir
 sockethost.o
 sockethost.cpp~
-sockethost.h~
 ..
 sockethost.h
 Untitled Document

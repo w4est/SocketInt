@@ -224,6 +224,33 @@ void SocketHost::HandleTCPClient(int clntSocket){
 
 	  
 	}
+
+	
+	else if(strcmp(echoBuffer, "get") == 0){
+ 	
+		  printf("File Requested\n");
+		  //get file name
+		  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+		   { 
+			printf("recv() failed");
+			return;
+		  }
+		
+		printf("Requested: %s\n", echoBuffer);
+		  
+		  if (GetFileSize(echoBuffer, clntSocket) > 0) //If file exists
+		{
+			Read(echoBuffer,clntSocket); //Send file.
+		}
+		 else
+		{
+			printf("Client requested file that does not exist!\n");
+		}  
+
+
+	}
+
+
 	//Parrot back any unknown commands.        
 	else{
 	if(send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
@@ -327,13 +354,26 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 
 
 }
+//Gets Filesize and sends to client
+long SocketHost::GetFileSize(string filename, int port){ 
 
+  //Create ifstream, and open file.
+  ifstream input(filename.c_str(), ios::in | ios::binary);
 
-SocketHost::~SocketHost(){
-//    if (pid > 0){ // If parent, clean up the child process.
-//      kill(pid,SIGKILL);
-//      printf("Killing child");
-//      fflush(stdout);
-//    }
+  if (input.fail() == true) //If opening file had error
+  {
+	return 0; //Return nothing.
+  }
+  // get the file length
+  input.seekg(0, input.end);
+  long length = input.tellg();
+  input.seekg(0,input.beg);
+  input.close(); //Close file
 
+	//Send to client
+	if(send(port, &length, sizeof(long), 0) != sizeof(length)){
+	   printf("Send() Directory falied");
+	   return 0;
+	}
+  return length; //Return file length.
 }
