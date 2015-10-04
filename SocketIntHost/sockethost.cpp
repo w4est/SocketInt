@@ -112,12 +112,14 @@ void SocketHost::listDirectories(const char* currDir){ //called when the server 
     fclose(dirList);
 }
 
-char* SocketHost::changeDirectory(const char *currDir, const char *subDir){
-    char* newDir ="";
-    strcpy(newDir, currDir);
-    strcat(newDir, subDir);
-    chdir(currDir); //changes the directory FOR THE CURRENT WORKING PROCESS
-    return newDir;
+void SocketHost::changeDirectory(const char *newDir, int sock){
+    char buffer[RCVBUFSIZE];   
+    chdir(newDir); //changes the directory FOR THE CURRENT WORKING PROCESS
+    if(getcwd(buffer, sizeof(buffer)) != NULL){
+       if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
+           printf("send failed()");
+       }
+    }
 }
 
 void SocketHost::makeDirectory(const char *currDir){
@@ -132,6 +134,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
     int recvMsgSize;
     char cwd[1024];
     long int fileSize;
+    
 
     if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0) //Look for Hello
         printf("Recv failed");
@@ -145,6 +148,17 @@ void SocketHost::HandleTCPClient(int clntSocket){
             printf("recv failed");
         echoBuffer[recvMsgSize] = '\0';
 	printf("Received: %s\n" , echoBuffer);
+	
+	//hangle cd
+	if(strstr(echoBuffer, "cd") != NULL){
+	  printf("You have chosen to change the directory\n");
+	  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0)//get second word
+            printf("recv() failed");
+          printf("echoBuffer: %s\n", echoBuffer);
+          changeDirectory(echoBuffer, clntSocket);
+	}
+
+	//handle ls
 	if(strcmp(echoBuffer, "ls") == 0){
 	    listDirectories(getcwd(cwd, sizeof(cwd)));
 	    FILE* dirList = fopen("dirList.txt", "r");

@@ -1,0 +1,6 @@
+dirList.txt
+.
+.git
+SocketIntHost
+..
+SocketIntClient

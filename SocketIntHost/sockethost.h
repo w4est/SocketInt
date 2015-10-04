@@ -12,7 +12,7 @@ class SocketHost
 public:
     SocketHost(int); //constructor, take ui and use
     void listDirectories(const char*);
-    char* changeDirectory(const char*, const char*);
+    void changeDirectory(const char*, int);
     void makeDirectory(const char*);
     void HandleTCPClient(int);
     ~SocketHost();
