@@ -159,7 +159,7 @@ void SocketHost::changeDirectory(const char *newDir, int sock){
      
    	 }
 	
-	if(send(sock, "///", RCVBUFSIZE, 0) < 0){ //Send Acknowledgement, the client needs
+	if(send(sock, "//", RCVBUFSIZE, 0) < 0){ //Send Acknowledgement, the client needs
 	   printf("send failed()");
 	}
 }
@@ -205,11 +205,11 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	    FILE* dirList = fopen("dirList.txt", "r");
 	    fseek(dirList, 0L, SEEK_END);
             fileSize = ftell(dirList);
-	    if(send(clntSocket, &fileSize, RCVBUFSIZE, 0) < 0){
+	    if(send(clntSocket, &fileSize, RCVBUFSIZE, 0) != RCVBUFSIZE){
                 printf("Send() failed");
             }
 	    printf("File Size: %ld\n: ", fileSize);
-            if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0 )
+            if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0 )
 	        printf("recv() failed");
             echoBuffer[recvMsgSize] = '\0';
             

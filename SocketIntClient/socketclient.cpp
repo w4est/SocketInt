@@ -74,13 +74,13 @@ SocketClient::SocketClient(int Port, string ip)
         	return;
       	}
 	memset(echoBuffer, 0 , RCVBUFSIZE);
-	while(strstr(echoBuffer,"///") == NULL) //Go until terminator.
+	while(strstr(echoBuffer,"//") == NULL) //Go until terminator.
 	{
 		if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) < 0){
 		    printf("Connection closed early or recv() failure!");
 		    return;
 		  }
-		if (strstr(echoBuffer, "///") == NULL){
+		if (strstr(echoBuffer, "//") == NULL){
 			printf("%s",echoBuffer);
 		}
 		fflush(stdout);
@@ -136,7 +136,7 @@ void SocketClient::ListDirectory(int sock)
       printf("File Size: %ld\n",Input);
       fflush(stdout);
 		}
-      if(send(sock, "ok", 32, 0) != 32){ //Send that we got the length of file.
+      if(send(sock, "ok", RCVBUFSIZE, 0) != RCVBUFSIZE){ //Send that we got the length of file.
         printf("Send failed! Different number of bytes then expected \n");
         return;
       }
