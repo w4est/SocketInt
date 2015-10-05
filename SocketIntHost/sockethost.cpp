@@ -338,7 +338,7 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 		   return;
 		}
 		count++;
-		printf("%s |%ld|",buffer,count*32);
+		//printf("%s |%ld|",buffer,count*32);
 	}
 	else{
 		int x = length - (count*32);
@@ -353,7 +353,7 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 		}
 		
 		count++;
-		printf("%s |%ld|",buffer,count*32);
+		//printf("%s |%ld|",buffer,count*32);
 	}
 
 	

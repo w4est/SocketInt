@@ -239,7 +239,7 @@ int SocketClient::recvFile(long size, string savename,int port)
      if((bytesRcvd = recv(port, buffer, RCVBUFSIZE, 0)) < 0){
 		      	
 		printf("|%ld|", bytesRcvd);
-		printf("RECIEVE ERROR");
+		printf("RECIEVE ERROR, Cannot get file!");
 		fflush(stdout);
 		return -1; //Error.
       }
@@ -254,10 +254,10 @@ int SocketClient::recvFile(long size, string savename,int port)
       else{
 	totalBytesRcvd += bytesRcvd; 
 	outFile.write(buffer, bytesRcvd); // write data on to output file
-        printf("%s|%ld|",buffer,totalBytesRcvd);
+        //printf("%s|%ld|",buffer,totalBytesRcvd);
 	}
    }
-   printf("Transferred file to : %s\n", getcwd(buffer, RCVBUFSIZE));
+   printf("Transferred file to Client working directory"));
    outFile.close();
    return 0;
 }
