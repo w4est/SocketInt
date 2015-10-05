@@ -182,7 +182,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
     char echoBuffer[RCVBUFSIZE];
     int recvMsgSize = 1;
     char cwd[1024];
-    long int fileSize;
+    long fileSize;
     
 
     
@@ -241,27 +241,43 @@ void SocketHost::HandleTCPClient(int clntSocket){
 	  
 	}
 
-	
+	//Handle file transfer
 	else if(strcmp(echoBuffer, "get") == 0){
- 	
+ 		  fileSize = 0;
+
 		  printf("File Requested\n");
 		  //get file name
+		  memset(echoBuffer, 0, RCVBUFSIZE);
 		  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
 		   { 
 			printf("recv() failed");
 			return;
 		  }
-		
+		echoBuffer[recvMsgSize] = '\0';
 		printf("Requested: %s\n", echoBuffer);
 		  
-		  if (GetFileSize(echoBuffer, clntSocket) > 0) //If file exists
+		fileSize = GetFileSize(echoBuffer, clntSocket);
+		
+		
+		if ( fileSize > 0) //If file exists
 		{
+			if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+	        		printf("recv() failed");
+            		echoBuffer[recvMsgSize] = '\0';
+            		printf("%s\n",echoBuffer);
+                	printf("Starting Transfer\n");
+            		fflush(stdout);
 			Read(echoBuffer,clntSocket); //Send file.
 		}
 		 else
 		{
 			printf("Client requested file that does not exist!\n");
+			if(send(clntSocket, &fileSize, sizeof(long), 0) != sizeof(long)){
+	  		 	printf("Send() Directory failed");
+				return;
+			}
 		}  
+		
 
 
 	}
@@ -283,6 +299,12 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
   int READ_SIZE = 32;
 
   ifstream input(file.c_str(), ios::in | ios::binary);
+  
+  if(input.fail() == true){
+	printf("Cannot open file to read!");
+	fflush(stdout);
+	return;
+	}
 
   // get the file length
   input.seekg(0, input.end);
@@ -316,7 +338,7 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 		   return;
 		}
 		count++;
-		//printf("%s |%ld|",buffer,count*32);
+		printf("%s |%ld|",buffer,count*32);
 	}
 	else{
 		int x = length - (count*32);
@@ -329,55 +351,30 @@ void SocketHost::Read(string file, int sock){ //Read file in 32 bytes packets an
 		   printf("Send() Directory failed");
 		   return;
 		}
-		//printf("%s |%ld|",buffer,count*32);
+		
 		count++;
+		printf("%s |%ld|",buffer,count*32);
 	}
 
-
+	
 
   }
 
-
-  /* loop until the end of file is not reached 
-  do
-  {
-    memset(buffer,0, 32);
-    if(length - input.tellg() >= 32){
-      
-      input.read(buffer, READ_SIZE);
-      if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
-	   printf("Send() falied");
-	   return;
-      }
-      //cout << buffer << " | ";
-      //cout << input.tellg() << "\n";
-    }
-    else{
-      int x = length - input.tellg();
-      input.read(buffer, x);
-      if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
-	   printf("Send() falied");
-	   return;
-      }
-      //cout << input.tellg() << "\n";
-      break;
-
-    }
-
-  }while(!input.eof());
-  input.close();*/
-  cout << "Sent DirectoryList\n";
+  
 
 
 }
 //Gets Filesize and sends to client
 long SocketHost::GetFileSize(string filename, int port){ 
 
+
   //Create ifstream, and open file.
   ifstream input(filename.c_str(), ios::in | ios::binary);
-
+  
   if (input.fail() == true) //If opening file had error
   {
+	printf("File cannot be opened");
+	fflush(stdout);
 	return 0; //Return nothing.
   }
   // get the file length
@@ -386,9 +383,11 @@ long SocketHost::GetFileSize(string filename, int port){
   input.seekg(0,input.beg);
   input.close(); //Close file
 
+  
+
 	//Send to client
-	if(send(port, &length, sizeof(long), 0) != sizeof(length)){
-	   printf("Send() Directory falied");
+	if(send(port, &length, sizeof(long), 0) != sizeof(long)){
+	   printf("Send() Directory failed");
 	   return 0;
 	}
   return length; //Return file length.

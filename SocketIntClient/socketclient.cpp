@@ -7,6 +7,8 @@
 #include <unistd.h> /* for close */
 #include <sys/types.h>
 #include <signal.h>
+#include <fstream>
+#include <iostream>
 
 #define RCVBUFSIZE 32 /*Size ofreceive buff */
 
@@ -17,12 +19,12 @@ SocketClient::SocketClient(int Port, string ip)
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort = Port; //Make sure we are using the server port here!
     char *servIP;
-    char  echoString[RCVBUFSIZE];
+    char echoString[RCVBUFSIZE];
     char echoBuffer[RCVBUFSIZE];
     unsigned int echoStringLen;
     int bytesRcvd, totalBytesRcvd;
 
-    //servIP = "127.0.0.1"; //TODO make these come from form
+    //servIP = "127.0.0.1"; //set serv IP. and initial message.
     servIP = (char*) ip.c_str();
     strncpy(echoString, "Hello", sizeof(echoString));
 
@@ -61,13 +63,40 @@ SocketClient::SocketClient(int Port, string ip)
       
       /*if asking for a file!*/
       else if(strcmp(echoString, "get") == 0){
-
-
+	
+	memset(echoBuffer,0,RCVBUFSIZE);
+        if (!feof(stdin));
+		scanf("%*c");
+	scanf("%[^\n]s",echoBuffer);
+        	
+	echoStringLen = strlen(echoString);
+        if(send(sock, echoBuffer, RCVBUFSIZE-1, 0) != RCVBUFSIZE-1){
+        	printf("Send failed! Different number of bytes then expected \n");
+        	return;
+      	}
+	long i = 0;
+	if((bytesRcvd = recv(sock, &i, RCVBUFSIZE, 0)) < 0){
+		    printf("Connection closed early or recv() failure!");
+		    return;
+	}
+	
+	if (i > 0){ //If file exists, we can transfer it.
+		if((recvFile(i, echoBuffer, sock)) != 0){//Get file
+			printf("File failed to transfer");
+		} 
+		else{
+			printf("Transfer complete");
+		}
+	}
+	else{
+		printf("file does not exist.\n");//It does not exist.
+	}
+	memset(echoBuffer,0,RCVBUFSIZE);
       }
 	
       else if(strcmp(echoString, "cd") == 0){
 	printf("To what directory?: ");
-        scanf("%s[^n]",echoString);
+        scanf("%s",echoString);
 	echoStringLen = strlen(echoString);
         if(send(sock, echoString, echoStringLen, 0) != (int) echoStringLen){
         	printf("Send failed! Different number of bytes then expected \n");
@@ -92,7 +121,7 @@ SocketClient::SocketClient(int Port, string ip)
 	
 	else if(strcmp(echoString, "mkdir") == 0){
 	  printf("What directory?: ");
-	  scanf("%s[^n]", echoString);
+	  scanf("%s", echoString);
 	  echoStringLen = strlen(echoString);
    	  if(send(sock, echoString, echoStringLen, 0) != (int)echoStringLen){
 	    printf("Send()  failed");
@@ -120,7 +149,7 @@ SocketClient::SocketClient(int Port, string ip)
       }
       
       printf("Command: ");
-      scanf("%s[^n]",echoString);
+      scanf("%s",echoString);
       
     }
 
@@ -136,7 +165,7 @@ void SocketClient::ListDirectory(int sock)
     long totalBytesRcvd = 0;
     long bytesRcvd = 0;
 	
-    while (totalBytesRcvd < (long) sizeof(long)){ //Get a long
+    
       if((bytesRcvd = recv(sock, &Input, RCVBUFSIZE, 0)) < 0){
         printf("Connection closed early or recv() failure!");
      	return;
@@ -145,8 +174,9 @@ void SocketClient::ListDirectory(int sock)
       totalBytesRcvd += bytesRcvd;
       printf("File Size: %ld\n",Input);
       fflush(stdout);
-		}
-      if(send(sock, "ok", RCVBUFSIZE, 0) != RCVBUFSIZE){ //Send that we got the length of file.
+
+      //Send that we got the length of file.
+      if(send(sock, "ok", RCVBUFSIZE, 0) != RCVBUFSIZE){ 
         printf("Send failed! Different number of bytes then expected \n");
         return;
       }
@@ -180,4 +210,54 @@ void SocketClient::ListDirectory(int sock)
     printf ("\n");
     printf ("%ld", totalBytesRcvd);	
     fflush(stdout);
+}
+
+int SocketClient::recvFile(long size, string savename,int port)
+{
+   ofstream outFile(savename.c_str(), ios::out | ios::binary | ios::app);
+  
+   
+   char buffer[RCVBUFSIZE];
+ 
+   long totalBytesRcvd = 0;
+   long bytesRcvd = 0;
+
+      printf("File Name: %s\n", savename.c_str());
+      printf("File Size: %ld\n",size);
+      fflush(stdout);
+
+      //Send that we got the length of file.
+      if(send(port, savename.c_str(), RCVBUFSIZE, 0) != RCVBUFSIZE){ 
+        printf("Send failed! Different number of bytes then expected \n");
+        return -1;
+      }
+   	
+   while(totalBytesRcvd < size){
+	memset(buffer,0, 32); //memset set to 0
+	
+	   
+     if((bytesRcvd = recv(port, buffer, RCVBUFSIZE, 0)) < 0){
+		      	
+		printf("|%ld|", bytesRcvd);
+		printf("RECIEVE ERROR");
+		fflush(stdout);
+		return -1; //Error.
+      }
+	   
+      if (((bytesRcvd + totalBytesRcvd) > size) && (size % 32 != 0)){
+         
+        int i = (size % 32)-1; //Trim packet. read gives an extra /n every time. If it's a 32 bit modulus, it will be read by the recv anyways.
+	outFile.write(buffer, i);		
+	printf("%s|%ld|",buffer,totalBytesRcvd);
+	totalBytesRcvd += bytesRcvd;    
+	   }
+      else{
+	totalBytesRcvd += bytesRcvd; 
+	outFile.write(buffer, bytesRcvd); // write data on to output file
+        printf("%s|%ld|",buffer,totalBytesRcvd);
+	}
+   }
+   printf("Transferred file to : %s\n", getcwd(buffer, RCVBUFSIZE));
+   outFile.close();
+   return 0;
 }

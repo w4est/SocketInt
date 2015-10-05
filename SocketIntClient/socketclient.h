@@ -10,6 +10,7 @@ public:
     SocketClient(int,string);
 private:
     void ListDirectory(int);
+    int recvFile(long , string,int);
 };
 
 #endif // SOCKETCLIENT_H
