@@ -93,6 +93,42 @@ SocketClient::SocketClient(int Port, string ip)
 	}
 	memset(echoBuffer,0,RCVBUFSIZE);
       }
+
+      //Send file to host!
+      else if (strcmp(echoString, "send") == 0){
+         memset(echoBuffer,0,RCVBUFSIZE);
+        if (!feof(stdin));
+		scanf("%*c");
+	scanf("%[^\n]s",echoBuffer);
+        //Send file name
+        if(send(sock, echoBuffer, RCVBUFSIZE-1, 0) != RCVBUFSIZE-1){
+        	printf("Send failed! Different number of bytes then expected \n");
+        	return;
+      	}
+
+	long i = 0;
+
+	i = GetFileSize(echoBuffer,sock); //Get file size and send it
+
+	memset(echoBuffer,0,RCVBUFSIZE); //make sure it's clean.
+	if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) < 0){
+		    printf("Connection closed early or recv() failure!");
+		    return;
+	}
+	//echoBuffer[bytesRcvd] = '\0';
+
+	if (i > 0) //We good to read file.
+        {
+		printf("Starting Transfer...\n");
+		Read(echoBuffer, sock); //Read and send.
+		printf("File sent\n");
+        }
+        else{
+		printf("Cannot send file\n");
+		}
+
+     }
+
 	
       else if(strcmp(echoString, "cd") == 0){
 	printf("To what directory?: ");
@@ -248,7 +284,7 @@ int SocketClient::recvFile(long size, string savename,int port)
          
         int i = (size % 32)-1; //Trim packet. read gives an extra /n every time. If it's a 32 bit modulus, it will be read by the recv anyways.
 	outFile.write(buffer, i);		
-	printf("%s|%ld|",buffer,totalBytesRcvd);
+	//printf("%s|%ld|",buffer,totalBytesRcvd);
 	totalBytesRcvd += bytesRcvd;    
 	   }
       else{
@@ -257,7 +293,104 @@ int SocketClient::recvFile(long size, string savename,int port)
         //printf("%s|%ld|",buffer,totalBytesRcvd);
 	}
    }
-   printf("Transferred file to Client working directory"));
+   printf("Transferred file to Client working directory");
    outFile.close();
    return 0;
 }
+
+void SocketClient::Read(string file, int sock){ //Read file in 32 bytes packets and send.
+
+  int READ_SIZE = 32;
+
+  ifstream input(file.c_str(), ios::in | ios::binary);
+  
+  if(input.fail() == true){
+	printf("Cannot open file to read!");
+	fflush(stdout);
+	return;
+	}
+
+  // get the file length
+  input.seekg(0, input.end);
+  long length = input.tellg();
+  input.seekg(0, input.beg); 
+
+  
+
+  char*  buffer = new char[32];
+  cout << "File Length: " << length << endl;
+  cout << "Reading 32-bytes at a time...\n";
+  
+   //Alternative method. unneeded.
+  char*  filedata = new char[length];
+  input.read(filedata, length); //Get file into a char array
+  input.close();
+  long count = 0;
+
+  while((count*32) < length) //For every char
+  {
+        memset(buffer,0, READ_SIZE); //Set packet to zero
+	if ((length - (count*32)) >= 32)
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			buffer[i] = filedata[(count*32) + i];
+				
+		}
+		if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
+		   printf("Send() Directory falied");
+		   return;
+		}
+		count++;
+		//printf("%s |%ld|",buffer,count*32);
+	}
+	else{
+		int x = length - (count*32);
+		for (int i = 0; i < x; i++)
+		{
+			buffer[i] = filedata[(count*32) + i];
+				
+		}
+		if(send(sock, buffer, RCVBUFSIZE, 0) < 0){
+		   printf("Send() Directory failed");
+		   return;
+		}
+		
+		count++;
+		//printf("%s |%ld|",buffer,count*32);
+	}
+
+	
+
+  }
+}
+
+//Gets Filesize and sends to client
+long SocketClient::GetFileSize(string filename, int port){ 
+
+
+  //Create ifstream, and open file.
+  ifstream input(filename.c_str(), ios::in | ios::binary);
+  
+  if (input.fail() == true) //If opening file had error
+  {
+	printf("File cannot be opened");
+	fflush(stdout);
+	return 0; //Return nothing.
+  }
+  // get the file length
+  input.seekg(0, input.end);
+  long length = input.tellg();
+  input.seekg(0,input.beg);
+  input.close(); //Close file
+
+  
+
+	//Send to client
+	if(send(port, &length, sizeof(long), 0) != sizeof(long)){
+	   printf("Send() Directory failed");
+	   return 0;
+	}
+  return length; //Return file length.
+}
+

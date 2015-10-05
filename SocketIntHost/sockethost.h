@@ -21,6 +21,7 @@ protected:
     pid_t pid; //Process id.
     void Read(string, int);
     long GetFileSize(string, int);
+    int recvFile(long , string,int); 
 };
 
 #endif // SOCKETHOST_H

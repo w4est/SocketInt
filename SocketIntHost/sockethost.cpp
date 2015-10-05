@@ -248,12 +248,12 @@ void SocketHost::HandleTCPClient(int clntSocket){
 		  printf("File Requested\n");
 		  //get file name
 		  memset(echoBuffer, 0, RCVBUFSIZE);
-		  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+		  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0)
 		   { 
 			printf("recv() failed");
 			return;
 		  }
-		echoBuffer[recvMsgSize] = '\0';
+		//echoBuffer[recvMsgSize] = '\0';
 		printf("Requested: %s\n", echoBuffer);
 		  
 		fileSize = GetFileSize(echoBuffer, clntSocket);
@@ -263,7 +263,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
 		{
 			if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
 	        		printf("recv() failed");
-            		echoBuffer[recvMsgSize] = '\0';
+            		//echoBuffer[recvMsgSize] = '\0';
             		printf("%s\n",echoBuffer);
                 	printf("Starting Transfer\n");
             		fflush(stdout);
@@ -282,6 +282,40 @@ void SocketHost::HandleTCPClient(int clntSocket){
 
 	}
 
+	//Handle file being uploaded
+	else if(strcmp(echoBuffer, "send") == 0){
+ 		  fileSize = 0;
+
+		  printf("File Requested\n");
+		  //get file name
+		  memset(echoBuffer, 0, RCVBUFSIZE);
+		  if((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE-1, 0)) < 0)
+		   { 
+			printf("recv() failed");
+			return;
+		  }
+		echoBuffer[recvMsgSize] = '\0';
+		printf("Requested to store: %s\n", echoBuffer);
+		  
+		if((recvMsgSize = recv(clntSocket, &fileSize, RCVBUFSIZE, 0)) < 0)
+	        		printf("recv() failed");
+		
+		
+		if ( fileSize > 0) //If file exists
+		{
+			
+                	printf("Being Sent file\n");
+			recvFile(fileSize,echoBuffer,clntSocket); //Recieve this file.
+		}
+		 else
+		{
+			printf("Null file recieved that does not exist!\n"); //If it cannot be sent, don't wait for it.
+			
+		}  
+		
+
+
+	}
 
 	//Parrot back any unknown commands.        
 	else{
@@ -391,4 +425,55 @@ long SocketHost::GetFileSize(string filename, int port){
 	   return 0;
 	}
   return length; //Return file length.
+}
+
+
+int SocketHost::recvFile(long size, string savename,int port)
+{
+   ofstream outFile(savename.c_str(), ios::out | ios::binary | ios::app);
+  
+   
+   char buffer[RCVBUFSIZE];
+ 
+   long totalBytesRcvd = 0;
+   long bytesRcvd = 0;
+
+      printf("File Name: %s\n", savename.c_str());
+      printf("File Size: %ld\n",size);
+      fflush(stdout);
+
+      //Send that we got the length of file.
+      if(send(port, savename.c_str(), RCVBUFSIZE, 0) != RCVBUFSIZE){ 
+        printf("Send failed! Different number of bytes then expected \n");
+        return -1;
+      }
+   	
+   while(totalBytesRcvd < size){
+	memset(buffer,0, 32); //memset set to 0
+	
+	   
+     if((bytesRcvd = recv(port, buffer, RCVBUFSIZE, 0)) < 0){
+		      	
+		printf("|%ld|", bytesRcvd);
+		printf("RECIEVE ERROR, Cannot get file!");
+		fflush(stdout);
+		return -1; //Error.
+      }
+	   
+      if (((bytesRcvd + totalBytesRcvd) > size) && (size % 32 != 0)){
+         
+        int i = (size % 32)-1; //Trim packet. read gives an extra /n every time. If it's a 32 bit modulus, it will be read by the recv anyways.
+	outFile.write(buffer, i);		
+	//printf("%s|%ld|",buffer,totalBytesRcvd);
+	totalBytesRcvd += bytesRcvd;    
+	   }
+      else{
+	totalBytesRcvd += bytesRcvd; 
+	outFile.write(buffer, bytesRcvd); // write data on to output file
+        //printf("%s|%ld|",buffer,totalBytesRcvd);
+	}
+   }
+   printf("Transferred file to host working directory");
+   outFile.close();
+   return 0;
 }
