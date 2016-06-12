@@ -309,7 +309,7 @@ void SocketHost::HandleTCPClient(int clntSocket){
 		}
 		 else
 		{
-			printf("Null file recieved that does not exist!\n"); //If it cannot be sent, don't wait for it.
+			printf("Null file received that does not exist!\n"); //If it cannot be sent, don't wait for it.
 			
 		}  
 		

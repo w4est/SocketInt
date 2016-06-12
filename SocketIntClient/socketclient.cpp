@@ -168,7 +168,7 @@ SocketClient::SocketClient(int Port, string ip)
       else{
         /*Echo server*/
         totalBytesRcvd = 0;
-	printf("Recieved: ");
+	printf("Received: ");
 	while (totalBytesRcvd < (int)echoStringLen){
 	  if((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) < 0){
             printf("Connection closed early or recv() failure!");
